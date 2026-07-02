@@ -95,14 +95,14 @@ def load_support_tickets(customer_id):
 # ── Load sessions from MongoDB ─────────────────────────────────────
 def load_sessions(customer_id):
     db = get_mongo_database()
-    document = db["behavioral_sessions"].find({"customer_id": customer_id})
+    document = db["behavioural_sessions"].find({"customer_id": customer_id})
     return list(document)
 
 
 # ── Load notifications from MongoDB ───────────────────────────────
 def load_notifications(customer_id):
     db = get_mongo_database()
-    document = db["notification_responses"].find({"customer_id": customer_id})
+    document = db["notifications_responses"].find_one({"customer_id": customer_id})
     if document is None:
         logger.warning(f"  No notifications document found for {customer_id}. Returning empty dict.")
         return {}
@@ -160,7 +160,7 @@ def load_all_customers():
 
     for index, customer in enumerate(customers, start=1):
         cid = customer["customer_id"]
-        logger.info(f"  [{index}/{total}] Loading data for {cid}...")
+        print(f"  [{index}/{total}] Loading data for {cid}...")
 
         combined_customer_data.append({
             "customer_id":   cid,
