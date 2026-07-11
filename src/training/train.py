@@ -28,6 +28,10 @@ def save_checkpoint(model,filename="risk_model_checkpoint.pt"):
 def train():
     torch.manual_seed(42)  # for reproducibility
     sequences,tabular,labels=load_tensors()
+    # Early stopping setup
+    best_val_loss=float('inf')
+    patience=7
+    patience_counter=0
     # find the vocab size for the LSTM encoder
     vocab_size=int(sequences.max().item())+1
     # create the model
@@ -62,6 +66,16 @@ def train():
             val_predictions=model(val_seq,val_tab)
             val_loss=criterion(val_predictions,val_labels.float())
             val_accuracy=compute_accuracy(val_predictions,val_labels.float())
+            if val_loss<best_val_loss:
+                best_val_loss=val_loss
+                patience_counter=0
+                save_checkpoint(model,filename="best_model.pt")
+                logger.info(f"New best model saved with val_loss={val_loss.item():.4f}")
+            else:
+                patience_counter+=1
+            if patience_counter>=patience:
+                logger.info(f"Early stopping triggered at epoch {epoch}.")
+                break
         #log for every 5th epoch
         if epoch%5==0:
             logger.info(
@@ -70,7 +84,6 @@ def train():
                 f"Val Loss: {val_loss.item():.4f}, "
                 f"Val Acc: {val_accuracy:.2%}"      # ← add  (.2% shows as percentage)
             )
-    save_checkpoint(model)
 
 def compute_accuracy(predictions,labels,threshold=0.5):
     predicted_classes=(predictions>=threshold).float()
