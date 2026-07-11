@@ -26,6 +26,7 @@ def save_checkpoint(model,filename="risk_model_checkpoint.pt"):
     return filepath
 
 def train():
+    torch.manual_seed(42)  # for reproducibility
     sequences,tabular,labels=load_tensors()
     # find the vocab size for the LSTM encoder
     vocab_size=int(sequences.max().item())+1
@@ -60,10 +61,21 @@ def train():
         with torch.no_grad():
             val_predictions=model(val_seq,val_tab)
             val_loss=criterion(val_predictions,val_labels.float())
+            val_accuracy=compute_accuracy(val_predictions,val_labels.float())
         #log for every 5th epoch
         if epoch%5==0:
-            logger.info(f"Epoch {epoch}/{epochs} — Train Loss: {loss.item():.4f}, Validation Loss: {val_loss.item():.4f}")
+            logger.info(
+                f"Epoch {epoch}/{epochs} — "
+                f"Train Loss: {loss.item():.4f}, "
+                f"Val Loss: {val_loss.item():.4f}, "
+                f"Val Acc: {val_accuracy:.2%}"      # ← add  (.2% shows as percentage)
+            )
     save_checkpoint(model)
 
+def compute_accuracy(predictions,labels,threshold=0.5):
+    predicted_classes=(predictions>=threshold).float()
+    correct=(predicted_classes==labels).sum().item()
+    accuracy=correct/len(labels)
+    return accuracy
 if __name__ == "__main__":
     train()
