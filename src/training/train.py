@@ -17,6 +17,14 @@ def load_tensors():
     labels=torch.load(processed / "labels.pt")
     return sequences,tabular,labels
 
+def save_checkpoint(model,filename="risk_model_checkpoint.pt"):
+    checkpoint_dir=ROOT_DIR / "checkpoints"
+    checkpoint_dir.mkdir(parents=True,exist_ok=True)
+    filepath=checkpoint_dir / filename
+    torch.save(model.state_dict(),filepath)
+    logger.info(f"Checkpoint saved to {filepath}")
+    return filepath
+
 def train():
     sequences,tabular,labels=load_tensors()
     # find the vocab size for the LSTM encoder
@@ -55,7 +63,7 @@ def train():
         #log for every 5th epoch
         if epoch%5==0:
             logger.info(f"Epoch {epoch}/{epochs} — Train Loss: {loss.item():.4f}, Validation Loss: {val_loss.item():.4f}")
-    
+    save_checkpoint(model)
 
 if __name__ == "__main__":
     train()
