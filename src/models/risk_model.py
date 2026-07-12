@@ -20,7 +20,6 @@ class RiskModel(nn.Module):
         tabular_out=self.tabular_encoder(tabular)
         combined=torch.cat((lstm_out,tabular_out),dim=1)
         risk_score=self.fc(combined)
-        risk_score=self.sigmoid(risk_score)
         return risk_score.squeeze(1)  # Return a 1D tensor of risk scores
 if __name__ == "__main__":
     # fake batch of 4 customers
